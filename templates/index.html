@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>ESP32 Motion Football</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #06140b;
+    color: white;
+}
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    min-height: 650px;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            rgba(0,0,0,.12),
+            rgba(0,0,0,.05)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #198844 0px,
+            #198844 120px,
+            #16803d 120px,
+            #16803d 240px
+        );
+}
+
+
+/* =========================================================
+   STADIUM
+   ========================================================= */
+
+.stadium {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    height: 19%;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #18212a 0,
+            #18212a 12px,
+            #313d48 12px,
+            #313d48 18px
+        );
+
+    border-bottom: 8px solid #47525c;
+}
+
+.stadium::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 15px;
+
+    height: 25px;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #eee 0,
+            #eee 5px,
+            #dc3e3e 5px,
+            #dc3e3e 10px,
+            #316ed0 10px,
+            #316ed0 15px
+        );
+
+    opacity: .8;
+}
+
+
+/* =========================================================
+   SCOREBOARD
+   ========================================================= */
+
+#scoreboard {
+    position: absolute;
+
+    left: 25px;
+    top: 25px;
+
+    padding: 14px 22px;
+
+    background: rgba(0,0,0,.72);
+
+    border-radius: 12px;
+
+    font-size: 21px;
+    font-weight: bold;
+
+    z-index: 20;
+}
+
+#connection {
+    position: absolute;
+
+    right: 25px;
+    top: 25px;
+
+    padding: 11px 18px;
+
+    background: rgba(0,0,0,.7);
+
+    border-radius: 20px;
+
+    z-index: 20;
+
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   GOAL
+   ========================================================= */
+
+#goal {
+    position: absolute;
+
+    width: 56%;
+    height: 31%;
+
+    left: 22%;
+    top: 17%;
+
+    border-left: 12px solid white;
+    border-right: 12px solid white;
+    border-top: 12px solid white;
+
+    background:
+
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 38px,
+            rgba(255,255,255,.30) 39px,
+            rgba(255,255,255,.30) 41px
+        ),
+
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 30px,
+            rgba(255,255,255,.28) 31px,
+            rgba(255,255,255,.28) 33px
+        );
+
+    perspective: 700px;
+
+    z-index: 3;
+}
+
+
+/* =========================================================
+   PENALTY AREA
+   ========================================================= */
+
+.penalty-box {
+    position: absolute;
+
+    left: 14%;
+    width: 72%;
+
+    top: 17%;
+    height: 43%;
+
+    border:
+        4px solid rgba(255,255,255,.8);
+
+    border-top: none;
+}
+
+
+/* =========================================================
+   GOALKEEPER
+   ========================================================= */
+
+#keeper {
+    position: absolute;
+
+    width: 110px;
+    height: 180px;
+
+    left: 50%;
+    top: 25%;
+
+    transform:
+        translateX(-50%);
+
+    z-index: 8;
+}
+
+
+/* HEAD */
+
+.head {
+    position: absolute;
+
+    width: 42px;
+    height: 48px;
+
+    left: 34px;
+    top: 0;
+
+    background: #c98d68;
+
+    border-radius:
+        48% 48% 43% 43%;
+}
+
+
+/* HAIR */
+
+.hair {
+    position: absolute;
+
+    width: 44px;
+    height: 18px;
+
+    left: 33px;
+    top: -2px;
+
+    background: #171717;
+
+    border-radius:
+        25px 25px 5px 5px;
+}
+
+
+/* JERSEY */
+
+.jersey {
+    position: absolute;
+
+    width: 65px;
+    height: 76px;
+
+    left: 22px;
+    top: 43px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ef8b13,
+            #ffb020
+        );
+
+    border-radius:
+        13px 13px 6px 6px;
+
+    border: 3px solid #c46d00;
+}
+
+
+/* JERSEY NUMBER */
+
+.jersey::after {
+    content: "1";
+
+    position: absolute;
+
+    width: 100%;
+
+    text-align: center;
+
+    top: 16px;
+
+    font-size: 34px;
+
+    font-weight: bold;
+
+    color: white;
+}
+
+
+/* ARMS */
+
+.arm {
+    position: absolute;
+
+    width: 67px;
+    height: 15px;
+
+    top: 58px;
+
+    background: #ef941b;
+
+    border-radius: 10px;
+}
+
+.arm.left {
+    left: -25px;
+    transform: rotate(-15deg);
+}
+
+.arm.right {
+    right: -25px;
+    transform: rotate(15deg);
+}
+
+
+/* GLOVES */
+
+.glove {
+    position: absolute;
+
+    width: 24px;
+    height: 24px;
+
+    top: 55px;
+
+    background: #f5f5f5;
+
+    border: 3px solid #222;
+
+    border-radius: 8px;
+}
+
+.glove.left {
+    left: -37px;
+}
+
+.glove.right {
+    right: -37px;
+}
+
+
+/* SHORTS */
+
+.shorts {
+    position: absolute;
+
+    width: 65px;
+    height: 36px;
+
+    left: 22px;
+    top: 113px;
+
+    background: #111b2b;
+
+    border-radius: 3px;
+}
+
+
+/* LEGS */
+
+.leg {
+    position: absolute;
+
+    width: 18px;
+    height: 53px;
+
+    top: 143px;
+
+    background: #ef8b13;
+
+    border-radius: 8px;
+}
+
+.leg.left {
+    left: 30px;
+}
+
+.leg.right {
+    right: 30px;
+}
+
+
+/* =========================================================
+   AIM
+   ========================================================= */
+
+#aimLine {
+    position: absolute;
+
+    height: 0;
+
+    border-top:
+        5px dashed rgba(255,230,50,.95);
+
+    transform-origin:
+        0 50%;
+
+    z-index: 5;
+
+    pointer-events: none;
+
+    filter:
+        drop-shadow(
+            0 0 4px
+            rgba(0,0,0,.8)
+        );
+}
+
+#target {
+    position: absolute;
+
+    width: 46px;
+    height: 46px;
+
+    border:
+        4px solid #ffe32f;
+
+    border-radius: 50%;
+
+    transform:
+        translate(-50%,-50%);
+
+    z-index: 6;
+
+    box-shadow:
+        0 0 10px
+        rgba(255,225,30,.8);
+}
+
+#target::after {
+    content: "";
+
+    position: absolute;
+
+    width: 8px;
+    height: 8px;
+
+    background: #ffe32f;
+
+    border-radius: 50%;
+
+    left: 50%;
+    top: 50%;
+
+    transform:
+        translate(-50%,-50%);
+}
+
+
+/* =========================================================
+   BALL
+   ========================================================= */
+
+#ball {
+    position: absolute;
+
+    width: 72px;
+    height: 72px;
+
+    left: 50%;
+    top: 82%;
+
+    transform:
+        translate(-50%,-50%);
+
+    z-index: 12;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            #111 0 11%,
+            transparent 12%
+        ),
+
+        radial-gradient(
+            circle at 27% 30%,
+            #111 0 9%,
+            transparent 10%
+        ),
+
+        radial-gradient(
+            circle at 73% 31%,
+            #111 0 9%,
+            transparent 10%
+        ),
+
+        radial-gradient(
+            circle at 29% 71%,
+            #111 0 9%,
+            transparent 10%
+        ),
+
+        radial-gradient(
+            circle at 72% 70%,
+            #111 0 9%,
+            transparent 10%
+        ),
+
+        radial-gradient(
+            circle at 35% 20%,
+            #fff,
+            #e8e8e8 55%,
+            #aaa 100%
+        );
+
+    border:
+        2px solid #333;
+
+    box-shadow:
+        0 15px 16px
+        rgba(0,0,0,.35);
+}
+
+
+/* =========================================================
+   POWER
+   ========================================================= */
+
+#powerArea {
+    position: absolute;
+
+    width: 420px;
+
+    left: 50%;
+    bottom: 22px;
+
+    transform:
+        translateX(-50%);
+
+    text-align: center;
+
+    z-index: 30;
+}
+
+#powerText {
+    font-size: 25px;
+    font-weight: bold;
+
+    margin-bottom: 7px;
+
+    text-shadow:
+        0 2px 3px black;
+}
+
+#powerBar {
+    height: 28px;
+
+    border:
+        3px solid white;
+
+    background:
+        rgba(0,0,0,.6);
+
+    border-radius: 14px;
+
+    overflow: hidden;
+}
+
+#powerFill {
+    width: 0%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #36db5c,
+            #ffd52e,
+            #ef3b2d
+        );
+
+    transition:
+        width .12s;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+#message {
+    position: absolute;
+
+    left: 50%;
+    top: 54%;
+
+    transform:
+        translate(-50%,-50%);
+
+    font-size: 56px;
+
+    font-weight: 900;
+
+    text-shadow:
+        0 5px 8px #000;
+
+    z-index: 25;
+
+    white-space: nowrap;
+}
+
+#instructions {
+    position: absolute;
+
+    left: 50%;
+    top: 63%;
+
+    transform:
+        translateX(-50%);
+
+    padding:
+        10px 20px;
+
+    background:
+        rgba(0,0,0,.5);
+
+    border-radius: 20px;
+
+    z-index: 20;
+
+    font-size: 18px;
+}
+
+
+/* =========================================================
+   GOAL FLASH
+   ========================================================= */
+
+#flash {
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        rgba(255,240,70,.42);
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    z-index: 50;
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+@keyframes flashGoal {
+
+    0% {
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div id="game">
+
+    <div class="stadium"></div>
+
+    <div id="scoreboard">
+        GOALS:
+        <span id="score">0</span>
+
+        &nbsp;&nbsp;
+
+        SHOTS:
+        <span id="shots">0</span>
+    </div>
+
+    <div id="connection">
+        WAITING FOR ESP32
+    </div>
+
+
+    <div class="penalty-box"></div>
+
+
+    <div id="goal"></div>
+
+
+    <!-- GOALKEEPER -->
+
+    <div id="keeper">
+
+        <div class="head"></div>
+        <div class="hair"></div>
+
+        <div class="jersey"></div>
+
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+
+        <div class="glove left"></div>
+        <div class="glove right"></div>
+
+        <div class="shorts"></div>
+
+        <div class="leg left"></div>
+        <div class="leg right"></div>
+
+    </div>
+
+
+    <div id="aimLine"></div>
+
+    <div id="target"></div>
+
+
+    <div id="ball"></div>
+
+
+    <div id="message">
+        AIM WITH YOUR HAND
+    </div>
+
+    <div id="instructions">
+        Move left/right to aim • Swing strongly to shoot
+    </div>
+
+
+    <div id="powerArea">
+
+        <div id="powerText">
+            SHOT POWER 0
+        </div>
+
+        <div id="powerBar">
+
+            <div id="powerFill"></div>
+
+        </div>
+
+    </div>
+
+
+    <div id="flash"></div>
+
+</div>
+
+
+<audio
+    id="goalSound"
+    src="/static/sounds/goal.mp3">
+</audio>
+
+<audio
+    id="missSound"
+    src="/static/sounds/miss.mp3">
+</audio>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<script>
+
+const socket =
+    io();
+
+
+const game =
+    document.getElementById("game");
+
+const ball =
+    document.getElementById("ball");
+
+const target =
+    document.getElementById("target");
+
+const aimLine =
+    document.getElementById("aimLine");
+
+const keeper =
+    document.getElementById("keeper");
+
+const message =
+    document.getElementById("message");
+
+const powerText =
+    document.getElementById("powerText");
+
+const powerFill =
+    document.getElementById("powerFill");
+
+const connection =
+    document.getElementById("connection");
+
+const scoreText =
+    document.getElementById("score");
+
+const shotsText =
+    document.getElementById("shots");
+
+const flash =
+    document.getElementById("flash");
+
+const goalSound =
+    document.getElementById("goalSound");
+
+const missSound =
+    document.getElementById("missSound");
+
+
+let aim = 0;
+
+let score = 0;
+let shots = 0;
+
+let shooting = false;
+
+let keeperX = 50;
+let keeperDirection = 1;
+
+let lastTime =
+    performance.now();
+
+
+/* ==========================================================
+   AIM
+   ========================================================== */
+
+socket.on(
+    "aim",
+    data => {
+
+        if (shooting)
+            return;
+
+        aim =
+            Math.max(
+                -100,
+                Math.min(
+                    100,
+                    data.value
+                )
+            );
+
+        updateAim();
+    }
+);
+
+
+function updateAim() {
+
+    const gameRect =
+        game.getBoundingClientRect();
+
+    const startX =
+        gameRect.width * 0.50;
+
+    const startY =
+        gameRect.height * 0.82;
+
+    const goalLeft =
+        gameRect.width * 0.25;
+
+    const goalRight =
+        gameRect.width * 0.75;
+
+    const targetX =
+        goalLeft +
+        (
+            (aim + 100) / 200
+        )
+        *
+        (
+            goalRight -
+            goalLeft
+        );
+
+    const targetY =
+        gameRect.height * 0.31;
+
+
+    target.style.left =
+        targetX + "px";
+
+    target.style.top =
+        targetY + "px";
+
+
+    const dx =
+        targetX - startX;
+
+    const dy =
+        targetY - startY;
+
+    const length =
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
+
+    const angle =
+        Math.atan2(
+            dy,
+            dx
+        )
+        * 180
+        / Math.PI;
+
+
+    aimLine.style.left =
+        startX + "px";
+
+    aimLine.style.top =
+        startY + "px";
+
+    aimLine.style.width =
+        length + "px";
+
+    aimLine.style.transform =
+        `rotate(${angle}deg)`;
+}
+
+
+/* ==========================================================
+   KICK
+   ========================================================== */
+
+socket.on(
+    "kick",
+    data => {
+
+        if (shooting)
+            return;
+
+        shoot(
+            data.power
+        );
+    }
+);
+
+
+function shoot(power) {
+
+    shooting = true;
+
+    shots++;
+
+    shotsText.textContent =
+        shots;
+
+
+    powerText.textContent =
+        `SHOT POWER ${power}`;
+
+    powerFill.style.width =
+        power + "%";
+
+
+    if (power >= 85) {
+
+        message.textContent =
+            "POWER SHOT!";
+
+    } else {
+
+        message.textContent =
+            "SHOT!";
+    }
+
+
+    const gameRect =
+        game.getBoundingClientRect();
+
+
+    const startX =
+        gameRect.width * 0.50;
+
+    const startY =
+        gameRect.height * 0.82;
+
+
+    const goalLeft =
+        gameRect.width * 0.25;
+
+    const goalRight =
+        gameRect.width * 0.75;
+
+
+    const endX =
+        goalLeft +
+        (
+            (aim + 100) / 200
+        )
+        *
+        (
+            goalRight -
+            goalLeft
+        );
+
+
+    const endY =
+        gameRect.height *
+        (
+            0.34 -
+            power / 1000
+        );
+
+
+    const start =
+        performance.now();
+
+
+    const duration =
+        1050 -
+        power * 5.8;
+
+
+    function animate(now) {
+
+        let t =
+            (now - start)
+            /
+            duration;
+
+        t =
+            Math.min(
+                1,
+                t
+            );
+
+
+        const smooth =
+            1 -
+            Math.pow(
+                1 - t,
+                2
+            );
+
+
+        const x =
+            startX +
+            (
+                endX -
+                startX
+            )
+            * smooth;
+
+
+        let y =
+            startY +
+            (
+                endY -
+                startY
+            )
+            * smooth;
+
+
+        y -=
+            Math.sin(
+                Math.PI * t
+            )
+            *
+            (
+                45 +
+                power * .25
+            );
+
+
+        const scale =
+            1 -
+            .48 * t;
+
+
+        const rotation =
+            t * 900;
+
+
+        ball.style.left =
+            x + "px";
+
+        ball.style.top =
+            y + "px";
+
+        ball.style.transform =
+            `
+            translate(-50%,-50%)
+            scale(${scale})
+            rotate(${rotation}deg)
+            `;
+
+
+        if (t < 1) {
+
+            requestAnimationFrame(
+                animate
+            );
+
+        } else {
+
+            finishShot(
+                endX,
+                power
+            );
+        }
+    }
+
+
+    requestAnimationFrame(
+        animate
+    );
+}
+
+
+/* ==========================================================
+   GOAL / SAVE
+   ========================================================== */
+
+function finishShot(
+    ballX,
+    power
+) {
+
+    const gameRect =
+        game.getBoundingClientRect();
+
+    const keeperCenter =
+        gameRect.width *
+        keeperX /
+        100;
+
+
+    const distance =
+        Math.abs(
+            ballX -
+            keeperCenter
+        );
+
+
+    const saveRange =
+        Math.max(
+            45,
+            125 -
+            power * .7
+        );
+
+
+    if (
+        distance <
+        saveRange
+    ) {
+
+        message.textContent =
+            "OOOH! SAVED!";
+
+        missSound.currentTime = 0;
+
+        missSound.play()
+            .catch(() => {});
+
+
+    } else {
+
+        score++;
+
+        scoreText.textContent =
+            score;
+
+
+        if (power >= 85) {
+
+            message.textContent =
+                "POWER GOAL!";
+
+        } else {
+
+            message.textContent =
+                "GOOOAL!";
+        }
+
+
+        goalSound.currentTime = 0;
+
+        goalSound.play()
+            .catch(() => {});
+
+
+        flash.style.animation =
+            "none";
+
+        void flash.offsetWidth;
+
+        flash.style.animation =
+            "flashGoal .6s";
+    }
+
+
+    setTimeout(
+        resetShot,
+        1700
+    );
+}
+
+
+/* ==========================================================
+   RESET
+   ========================================================== */
+
+function resetShot() {
+
+    shooting = false;
+
+
+    ball.style.left =
+        "50%";
+
+    ball.style.top =
+        "82%";
+
+    ball.style.transform =
+        `
+        translate(-50%,-50%)
+        scale(1)
+        rotate(0deg)
+        `;
+
+
+    powerText.textContent =
+        "SHOT POWER 0";
+
+    powerFill.style.width =
+        "0%";
+
+
+    message.textContent =
+        "AIM WITH YOUR HAND";
+
+
+    updateAim();
+}
+
+
+/* ==========================================================
+   GOALKEEPER MOVEMENT
+   ========================================================== */
+
+function gameLoop(now) {
+
+    const dt =
+        (now - lastTime)
+        /
+        1000;
+
+    lastTime = now;
+
+
+    let speed =
+        10 +
+        Math.floor(
+            score / 3
+        )
+        * 1.8;
+
+
+    keeperX +=
+        keeperDirection
+        *
+        speed
+        *
+        dt;
+
+
+    if (
+        keeperX > 68
+    ) {
+
+        keeperX = 68;
+        keeperDirection = -1;
+    }
+
+
+    if (
+        keeperX < 32
+    ) {
+
+        keeperX = 32;
+        keeperDirection = 1;
+    }
+
+
+    keeper.style.left =
+        keeperX + "%";
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+}
+
+
+/* ==========================================================
+   CONNECTION
+   ========================================================== */
+
+socket.on(
+    "status",
+    data => {
+
+        if (
+            data.connected
+        ) {
+
+            connection.textContent =
+                "● ESP32 CONNECTED";
+
+            connection.style.color =
+                "#73ff88";
+
+        } else {
+
+            connection.textContent =
+                "● WAITING FOR ESP32";
+
+            connection.style.color =
+                "#ffd65a";
+        }
+    }
+);
+
+
+window.addEventListener(
+    "resize",
+    updateAim
+);
+
+
+updateAim();
+
+requestAnimationFrame(
+    gameLoop
+);
+
+</script>
+
+</body>
+</html>
